@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #endif
 
-#include "system.h"
+#include "System.h"
 
 #define structMember(type, member) (((type *) 0)->member)
 #define getArrayElementsCount(array) (sizeof(array) / sizeof((array)[0]))

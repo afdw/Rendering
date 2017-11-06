@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(Rendering C)
 option(NO_RENDERING "Disable rendering" OFF)
-add_executable(${PROJECT_NAME} "main.c" "system.h" "system.c")
+add_executable(${PROJECT_NAME} "main.c" "System.h" "System.c")
 target_link_libraries(${PROJECT_NAME} m)
 if(NOT NO_RENDERING)
     find_package(OpenGL REQUIRED)
