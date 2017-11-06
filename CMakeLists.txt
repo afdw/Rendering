@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
     "Rasterizer.c" "Rasterizer.h"
     "System.h" "System.c"
 )
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 99)
 target_link_libraries(${PROJECT_NAME} m)
 if(NOT NO_RENDERING)
     find_package(OpenGL REQUIRED)
