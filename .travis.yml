@@ -1,0 +1,21 @@
+language: c
+
+compiler: gcc
+
+env:
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Debug .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Release .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DNO_RENDERING=ON .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DNO_RENDERING=ON .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Debug -DNO_RENDERING=ON .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Release -DNO_RENDERING=ON .. && make"
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y mingw-w64 binutils-mingw-w64 binutils-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64 gcc-mingw-w64-base gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 mingw-w64-common mingw-w64-tools
+
+install:
+    - eval "${MATRIX_COMMAND}"
+
