@@ -72,7 +72,7 @@ Matrix4F matrix4FNewFrustum(F left, F right, F bottom, F top, F near, F far) {
 }
 
 Matrix4F matrix4FNewPerspective(F fieldOfView, F aspectRatio, F near, F far) {
-    F height = near * tan(atan(tan(toRadians(fieldOfView) * 0.5F) / aspectRatio));
+    F height = near * tan(toRadians(fieldOfView) * 0.5F) / aspectRatio;
     F width = height * aspectRatio;
     return matrix4FNewFrustum(-width, width, -height, height, near, far);
 }
