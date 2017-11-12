@@ -7,8 +7,8 @@ env:
   - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make"
   - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Debug .. && make"
   - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Release .. && make"
-  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DNO_RENDERING=ON .. && make"
-  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DNO_RENDERING=ON .. && make"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DNO_RENDERING=ON .. && make && valgrind --leak-check=full ./Rendering"
+  - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DNO_RENDERING=ON .. && make && valgrind --leak-check=full ./Rendering"
   - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Debug -DNO_RENDERING=ON .. && make"
   - MATRIX_COMMAND="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../glfw/CMake/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Release -DNO_RENDERING=ON .. && make"
 

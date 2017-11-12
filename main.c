@@ -30,8 +30,8 @@ void *threadFunction(void *arg) {
 void render(Interface *interface, Rasterizer *rasterizer) {
     RenderData *renderData = (RenderData *) interfaceGetUserPointer(interface);
     rasterizerClear(rasterizer);
-    double time = (double) (systemGetCurrentMilliseconds() % 3000) / 3000;
-    double angle = time * M_PI * 2;
+    F time = (F) (systemGetCurrentMilliseconds() % 3000) / 3000;
+    F angle = time * M_PI * 2;
     Matrix4F projectionMatrix = matrix4FNewPerspective(85, (F) rasterizerGetSize(rasterizer).x / rasterizerGetSize(rasterizer).y, 1, 100);
     Matrix4F modelViewMatrix = matrix4FNewIdentity();
     modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewTranslation(vector3FNew(0, sin(angle) / 2, -2)));
