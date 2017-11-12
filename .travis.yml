@@ -14,7 +14,7 @@ env:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y binutils-mingw-w64 binutils-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64-base gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 mingw-w64-common mingw-w64-tools libxrandr-dev libxinerama-dev libxinerama1 libxcursor1 libxcursor-dev
+  - sudo apt-get install -y binutils-mingw-w64 binutils-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64-base gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 mingw-w64-common mingw-w64-tools libxrandr-dev libxinerama-dev libxinerama1 libxcursor1 libxcursor-dev valgrind
 
 script:
     - eval "${MATRIX_COMMAND}"
