@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <pthread.h>
-
 #include "Utils.h"
 #include "VectorTypes.h"
 #include "Vector2I.h"
@@ -22,10 +20,6 @@ typedef struct RenderData {
     Color *colors;
     Vector3F lightDirection;
 } RenderData;
-
-void *threadFunction(void *arg) {
-    return NULL;
-}
 
 void render(Interface *interface, Vector2I size, Rasterizer *rasterizer) {
     RenderData *renderData = (RenderData *) interfaceGetUserPointer(interface);
@@ -56,9 +50,6 @@ void render(Interface *interface, Vector2I size, Rasterizer *rasterizer) {
 }
 
 int main(void) {
-    pthread_t thread;
-    pthread_create(&thread, NULL, &threadFunction, NULL);
-    pthread_join(thread, NULL);
     int trianglesCount = 12;
     Vector3F positions[12 * 3] = {
         vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5),

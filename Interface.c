@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #ifndef NO_RENDERING
 #include <GLFW/glfw3.h>
@@ -28,8 +29,15 @@ void interfaceSetRender(Interface *interface, RenderFunction render) {
     interface->render = render;
 }
 
+void *threadFunction(void *arg) {
+    return NULL;
+}
+
 int interfaceMain(Interface *interface) {
-    Rasterizer *rasterizer = rasterizerNew(vector2INew(1000, 1000), vector2INew(0, 0), vector2INew(1000, 1000));
+    pthread_t thread;
+    pthread_create(&thread, NULL, &threadFunction, NULL);
+    pthread_join(thread, NULL);
+    Rasterizer *rasterizer = rasterizerNew(vector2INew(0, 0), vector2INew(0, 0), vector2INew(0, 0));
 #ifndef NO_RENDERING
     if (!glfwInit()) {
         return -1;
@@ -49,6 +57,10 @@ int interfaceMain(Interface *interface) {
         rasterizerSetOffset(rasterizer, vector2INew(200, 200));
         rasterizerSetSize(rasterizer, vector2ISubstract(size, rasterizerGetOffset(rasterizer)));
 #else
+    Vector2I size = vector2INew(1024, 1024);
+    rasterizerSetWholeSize(rasterizer, size);
+    rasterizerSetOffset(rasterizer, vector2INew(0, 0));
+    rasterizerSetSize(rasterizer, size);
     while (true) {
 #endif
         interface->render(interface, size, rasterizer);
