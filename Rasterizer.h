@@ -11,6 +11,7 @@
 #include "Vector2I.h"
 #include "Vector3F.h"
 #include "Color.h"
+#include "RasterizationTask.h"
 
 typedef struct Rasterizer {
     Vector2I wholeSize;
@@ -44,15 +45,7 @@ void rasterizerSetColor(Rasterizer *rasterizer, Vector2I position, Color color);
 
 void rasterizerSetDepth(Rasterizer *rasterizer, Vector2I position, F depth);
 
-Vector2I rasterizerNDCToScreen(Rasterizer *rasterizer, Vector3F vector);
-
-Vector3F rasterizerScreenToNDC(Rasterizer *rasterizer, Vector2I vector);
-
-void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color colorP0, Color colorP1);
-
-void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC);
-
-void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC);
+void rasterizerDraw(Rasterizer *rasterizer, RasterizationTask *rasterizationTask);
 
 void rasterizerDelete(Rasterizer *rasterizer);
 

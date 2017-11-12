@@ -11,7 +11,7 @@ Vector4F vector4FAdd(Vector4F a, Vector4F b) {
     return vector4FNew(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 
-Vector4F vector4FSubstract(Vector4F a, Vector4F b) {
+Vector4F vector4FSubtract(Vector4F a, Vector4F b) {
     return vector4FNew(a.x - b.x, a.y - b.y, a.z - b.z, a.w + b.w);
 }
 

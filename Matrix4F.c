@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "Utils.h"
+#include "Matrix3F.h"
 
 Matrix4F matrix4FNew(F m00, F m01, F m02, F m03,
                      F m10, F m11, F m12, F m13,
@@ -92,5 +93,13 @@ Vector4F matrix4FMultiplyByVector4F(Matrix4F m, Vector4F v) {
         m.m10 * v.x + m.m11 * v.y + m.m12 * v.z + m.m13 * v.w,
         m.m20 * v.x + m.m21 * v.y + m.m22 * v.z + m.m23 * v.w,
         m.m30 * v.x + m.m31 * v.y + m.m32 * v.z + m.m33 * v.w
+    );
+}
+
+Matrix3F matrix4FToMatrix3F(Matrix4F matrix) {
+    return matrix3FNew(
+        matrix.m00, matrix.m01, matrix.m02,
+        matrix.m10, matrix.m11, matrix.m12,
+        matrix.m20, matrix.m21, matrix.m22
     );
 }

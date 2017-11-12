@@ -13,7 +13,7 @@ Color colorNew(ColorComponent r, ColorComponent g, ColorComponent b, ColorCompon
 
 Color colorAdd(Color a, Color b);
 
-Color colorSubstract(Color a, Color b);
+Color colorSubtract(Color a, Color b);
 
 Color colorMultiply(Color color, ColorComponent n);
 

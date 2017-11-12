@@ -55,7 +55,7 @@ int interfaceMain(Interface *interface) {
         Vector2I size = vector2INew((I) width, (I) height);
         rasterizerSetWholeSize(rasterizer, size);
         rasterizerSetOffset(rasterizer, vector2INew(0, 0));
-        rasterizerSetSize(rasterizer, vector2ISubstract(size, rasterizerGetOffset(rasterizer)));
+        rasterizerSetSize(rasterizer, vector2ISubtract(size, rasterizerGetOffset(rasterizer)));
 #else
     Vector2I size = vector2INew(1024, 1024);
     rasterizerSetWholeSize(rasterizer, size);

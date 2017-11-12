@@ -16,7 +16,7 @@ Vector4F vector4FNew(F x, F y, F z, F w);
 
 Vector4F vector4FAdd(Vector4F a, Vector4F b);
 
-Vector4F vector4FSubstract(Vector4F a, Vector4F b);
+Vector4F vector4FSubtract(Vector4F a, Vector4F b);
 
 Vector3F vector4FToVector3F(Vector4F vector);
 

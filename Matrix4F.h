@@ -5,6 +5,8 @@
 #include "Vector3F.h"
 #include "Vector4F.h"
 
+typedef struct Matrix3F Matrix3F;
+
 typedef struct Matrix4F {
     F m00, m01, m02, m03;
     F m10, m11, m12, m13;
@@ -34,5 +36,7 @@ Matrix4F matrix4FNewPerspective(F fieldOfView, F aspectRatio, F near, F far);
 Matrix4F matrix4FMultiply(Matrix4F a, Matrix4F b);
 
 Vector4F matrix4FMultiplyByVector4F(Matrix4F m, Vector4F v);
+
+Matrix3F matrix4FToMatrix3F(Matrix4F matrix);
 
 #endif

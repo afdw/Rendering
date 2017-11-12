@@ -9,7 +9,7 @@ Color colorAdd(Color a, Color b) {
     return colorNew(a.r + b.r, a.g + b.g, a.b + b.b, a.a + b.a);
 }
 
-Color colorSubstract(Color a, Color b) {
+Color colorSubtract(Color a, Color b) {
     return colorNew(a.r - b.r, a.g - b.g, a.b - b.b, a.a - b.a);
 }
 

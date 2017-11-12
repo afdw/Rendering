@@ -121,15 +121,30 @@ Vector3F rasterizerScreenToNDC(Rasterizer *rasterizer, Vector2I vector) {
     return vector3FNew((F) vector.x / rasterizer->wholeSize.x * 2 - 1, (F) vector.y / rasterizer->wholeSize.y * 2 - 1, 0);
 }
 
-void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color colorP0, Color colorP1) {
-    Vector2I p0Screen = rasterizerNDCToScreen(rasterizer, p0);
-    Vector2I p1Screen = rasterizerNDCToScreen(rasterizer, p1);
-    Vector2I delta = vector2ISubstract(p1Screen, p0Screen);
+void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F *positions, void **vertexPixelDatas, ShaderProgram *shaderProgram) {
+    PixelShaderFunction pixelShader = shaderProgramGetPixelShader(shaderProgram);
+    size_t vertexPixelDataSize = shaderProgramGetVertexPixelDataSize(shaderProgram);
+    VertexPixelDataAddFunction vertexPixelDataAdd = shaderProgramGetVertexPixelDataAdd(shaderProgram);
+    VertexPixelDataSubtractFunction vertexPixelDataSubtract = shaderProgramGetVertexPixelDataSubtract(shaderProgram);
+    VertexPixelDataMultiplyFunction vertexPixelDataMultiply = shaderProgramGetVertexPixelDataMultiply(shaderProgram);
+    Vector3F a = positions[0];
+    Vector3F b = positions[1];
+    Vector2I aScreen = rasterizerNDCToScreen(rasterizer, a);
+    Vector2I bScreen = rasterizerNDCToScreen(rasterizer, b);
+    void *vertexPixelDataTemp1 = alloca(vertexPixelDataSize);
+    void *vertexPixelDataTemp2 = alloca(vertexPixelDataSize);
+    void *vertexPixelDataTemp3 = alloca(vertexPixelDataSize);
+    Vector2I delta = vector2ISubtract(bScreen, aScreen);
     Vector2I absDelta = vector2INew(abs(delta.x), abs(delta.y));
     int error = 0;
     if (absDelta.x >= absDelta.y) {
-        for (int x = p0Screen.x, y = p0Screen.y; delta.x >= 0 ? (x <= p1Screen.x) : (x >= p1Screen.x); x += sign(delta.x)) {
-            rasterizerSetColor(rasterizer, vector2INew(x, y), colorAdd(colorP0, colorMultiply(colorSubstract(colorP1, colorP0), (ColorComponent) abs(x - p0Screen.x) / abs(p1Screen.x - p0Screen.x))));
+        for (int x = aScreen.x, y = aScreen.y; delta.x >= 0 ? (x <= bScreen.x) : (x >= bScreen.x); x += sign(delta.x)) {
+            vertexPixelDataSubtract(vertexPixelDatas[1], vertexPixelDatas[0], vertexPixelDataTemp1);
+            vertexPixelDataMultiply(vertexPixelDataTemp1, (ColorComponent) abs(x - aScreen.x) / abs(bScreen.x - aScreen.x), vertexPixelDataTemp2);
+            vertexPixelDataAdd(vertexPixelDatas[0], vertexPixelDataTemp2, vertexPixelDataTemp3);
+            Color color;
+            pixelShader(vertexPixelDataTemp3, &color);
+            rasterizerSetColor(rasterizer, vector2INew(x, y), color);
             error += absDelta.y;
             if (error * 2 >= absDelta.x) {
                 y += sign(delta.y);
@@ -140,8 +155,13 @@ void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color 
             }
         }
     } else {
-        for (int x = p0Screen.x, y = p0Screen.y; delta.y >= 0 ? (y <= p1Screen.y) : (y >= p1Screen.y); y += sign(delta.y)) {
-            rasterizerSetColor(rasterizer, vector2INew(x, y), colorAdd(colorP0, colorMultiply(colorSubstract(colorP1, colorP0), (ColorComponent) abs(y - p0Screen.y) / abs(p1Screen.y - p0Screen.y))));
+        for (int x = aScreen.x, y = aScreen.y; delta.y >= 0 ? (y <= bScreen.y) : (y >= bScreen.y); y += sign(delta.y)) {
+            vertexPixelDataSubtract(vertexPixelDatas + 1, vertexPixelDatas, vertexPixelDataTemp1);
+            vertexPixelDataMultiply(vertexPixelDataTemp1, (ColorComponent) abs(y - aScreen.y) / abs(bScreen.y - aScreen.y), vertexPixelDataTemp2);
+            vertexPixelDataAdd(vertexPixelDatas, vertexPixelDataTemp2, vertexPixelDataTemp3);
+            Color color;
+            pixelShader(vertexPixelDataTemp3, &color);
+            rasterizerSetColor(rasterizer, vector2INew(x, y), color);
             error += absDelta.x;
             if (error * 2 >= absDelta.y) {
                 x += sign(delta.x);
@@ -154,16 +174,36 @@ void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color 
     }
 }
 
-void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC) {
-    rasterizerDrawLine(rasterizer, a, b, colorA, colorB);
-    rasterizerDrawLine(rasterizer, b, c, colorB, colorC);
-    rasterizerDrawLine(rasterizer, a, c, colorA, colorC);
+void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F *positions, void **vertexPixelDatas, ShaderProgram *shaderProgram) {
+    Vector3F positions1[] = {positions[0], positions[1]};
+    Vector3F positions2[] = {positions[1], positions[2]};
+    Vector3F positions3[] = {positions[0], positions[2]};
+    void *vertexPixelDatas1[] = {vertexPixelDatas[0], vertexPixelDatas[1]};
+    void *vertexPixelDatas2[] = {vertexPixelDatas[1], vertexPixelDatas[2]};
+    void *vertexPixelDatas3[] = {vertexPixelDatas[0], vertexPixelDatas[2]};
+    rasterizerDrawLine(rasterizer, positions1, vertexPixelDatas1, shaderProgram);
+    rasterizerDrawLine(rasterizer, positions2, vertexPixelDatas2, shaderProgram);
+    rasterizerDrawLine(rasterizer, positions3, vertexPixelDatas3, shaderProgram);
 }
 
-void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC) {
+void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F *positions, void **vertexPixelDatas, ShaderProgram *shaderProgram) {
+    PixelShaderFunction pixelShader = shaderProgramGetPixelShader(shaderProgram);
+    size_t vertexPixelDataSize = shaderProgramGetVertexPixelDataSize(shaderProgram);
+    VertexPixelDataAddFunction vertexPixelDataAdd = shaderProgramGetVertexPixelDataAdd(shaderProgram);
+    VertexPixelDataSubtractFunction vertexPixelDataSubtract = shaderProgramGetVertexPixelDataSubtract(shaderProgram);
+    VertexPixelDataMultiplyFunction vertexPixelDataMultiply = shaderProgramGetVertexPixelDataMultiply(shaderProgram);
+    Vector3F a = positions[0];
+    Vector3F b = positions[1];
+    Vector3F c = positions[2];
     Vector2I aScreen = rasterizerNDCToScreen(rasterizer, a);
     Vector2I bScreen = rasterizerNDCToScreen(rasterizer, b);
     Vector2I cScreen = rasterizerNDCToScreen(rasterizer, c);
+    void *vertexPixelDataTemp1 = alloca(vertexPixelDataSize);
+    void *vertexPixelDataTemp2 = alloca(vertexPixelDataSize);
+    void *vertexPixelDataTemp3 = alloca(vertexPixelDataSize);
+    void *vertexPixelDataTemp4 = alloca(vertexPixelDataSize);
+    void *vertexPixelDataTemp5 = alloca(vertexPixelDataSize);
+    void *vertexPixelDataTemp6 = alloca(vertexPixelDataSize);
     Vector2I minVertex = vector2INew(min(min(aScreen.x, bScreen.x), cScreen.x), min(min(aScreen.y, bScreen.y), cScreen.y));
     Vector2I maxVertex = vector2INew(max(max(aScreen.x, bScreen.x), cScreen.x), max(max(aScreen.y, bScreen.y), cScreen.y));
     for (I y = minVertex.y; y <= maxVertex.y; y++) {
@@ -174,7 +214,14 @@ void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vect
             if (m >= 0 && m <= 1) {
                 F l = (b.x != a.x) ? (((p.x - a.x) - m * (c.x - a.x)) / (b.x - a.x)) : (((p.y - a.y) - m * (c.y - a.y)) / (b.y - a.y));
                 if (l >= 0 && l <= 1 && m + l <= 1) {
-                    Color color = colorAdd(colorA, colorAdd(colorMultiply(colorSubstract(colorB, colorA), l), colorMultiply(colorSubstract(colorC, colorA), m)));
+                    vertexPixelDataSubtract(vertexPixelDatas[1], vertexPixelDatas[0], vertexPixelDataTemp1);
+                    vertexPixelDataSubtract(vertexPixelDatas[2], vertexPixelDatas[0], vertexPixelDataTemp2);
+                    vertexPixelDataMultiply(vertexPixelDataTemp1, l, vertexPixelDataTemp3);
+                    vertexPixelDataMultiply(vertexPixelDataTemp2, m, vertexPixelDataTemp4);
+                    vertexPixelDataAdd(vertexPixelDatas[0], vertexPixelDataTemp3, vertexPixelDataTemp5);
+                    vertexPixelDataAdd(vertexPixelDataTemp5, vertexPixelDataTemp4, vertexPixelDataTemp6);
+                    Color color;
+                    pixelShader(vertexPixelDataTemp6, &color);
                     F depth = a.z + l * (b.z - a.z) + m * (c.z - a.z);
                     F oldDepth = rasterizerGetDepth(rasterizer, pScreen);
                     if (oldDepth == 0 || depth < oldDepth) {
@@ -185,6 +232,52 @@ void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vect
                 }
             }
         }
+    }
+}
+
+void rasterizerDraw(Rasterizer *rasterizer, RasterizationTask *rasterizationTask) {
+    PrimitivesType primitivesType = rasterizationTaskGetPrimitivesType(rasterizationTask);
+    size_t primitivesCount = rasterizationTaskGetPrimitivesCount(rasterizationTask);
+    void *vertexBuffer = rasterizationTaskGetVertexBuffer(rasterizationTask);
+    void *uniformData = rasterizationTaskGetUniformData(rasterizationTask);
+    ShaderProgram *shaderProgram = rasterizationTaskGetShaderProgram(rasterizationTask);
+    size_t vertexPixelDataSize = shaderProgramGetVertexPixelDataSize(shaderProgram);
+    VertexShaderFunction vertexShader = shaderProgramGetVertexShader(shaderProgram);
+    size_t vertexesInPrimitiveCount;
+    switch (primitivesType) {
+    case LINES:
+        vertexesInPrimitiveCount = 2;
+        break;
+    case TRIANGLES_WIREFRAME:
+    case TRIANGLES:
+        vertexesInPrimitiveCount = 3;
+        break;
+    };
+    for (size_t primitiveIndex = 0; primitiveIndex < primitivesCount; primitiveIndex++) {
+        Vector3F *positions = alloca(sizeof(Vector3F) * vertexesInPrimitiveCount);
+        void **vertexPixelDatas = alloca(sizeof(void *) * vertexesInPrimitiveCount);
+        for (size_t vertexInPrimitiveIndex = 0; vertexInPrimitiveIndex < vertexesInPrimitiveCount; vertexInPrimitiveIndex++) {
+            size_t vertexIndex = primitiveIndex * vertexesInPrimitiveCount + vertexInPrimitiveIndex;
+            vertexPixelDatas[vertexInPrimitiveIndex] = alloca(vertexPixelDataSize);
+            vertexShader(
+                uniformData,
+                vertexBuffer,
+                vertexIndex,
+                &positions[vertexInPrimitiveIndex],
+                vertexPixelDatas[vertexInPrimitiveIndex]
+            );
+        }
+        switch (primitivesType) {
+        case LINES:
+            rasterizerDrawLine(rasterizer, positions, vertexPixelDatas, shaderProgram);
+            break;
+        case TRIANGLES_WIREFRAME:
+            rasterizerDrawTriangleWireframe(rasterizer, positions, vertexPixelDatas, shaderProgram);
+            break;
+        case TRIANGLES:
+            rasterizerDrawTriangle(rasterizer, positions, vertexPixelDatas, shaderProgram);
+            break;
+        };
     }
 }
 

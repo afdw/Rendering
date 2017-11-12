@@ -14,8 +14,12 @@ Vector3F vector3FAdd(Vector3F a, Vector3F b) {
     return vector3FNew(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
-Vector3F vector3FSubstract(Vector3F a, Vector3F b) {
+Vector3F vector3FSubtract(Vector3F a, Vector3F b) {
     return vector3FNew(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+Vector3F vector3FOpposite(Vector3F vector) {
+    return vector3FNew(-vector.x, -vector.y, -vector.z);
 }
 
 F vector3FLength(Vector3F vector) {
