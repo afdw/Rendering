@@ -84,14 +84,6 @@ void render(Interface *interface, Vector2I size, Rasterizer *rasterizer) {
     modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewRotation(angle, 0, 1, 0));
     modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewScaling(0.5, 0.5, 0.5));
     Matrix4F modelViewProjectionMatrix = matrix4FMultiply(projectionMatrix, modelViewMatrix);
-    /*for (size_t i = 0; i < userData->trianglesCount; i++) {
-        Vector3F a = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(userData->positions[i * 3], 1)));
-        Vector3F b = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(userData->positions[i * 3 + 1], 1)));
-        Vector3F c = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(userData->positions[i * 3 + 2], 1)));
-        Vector3F normal = vector3FNormalize(matrix3FMultiplyByVector3F(matrix4FToMatrix3F(modelViewMatrix), userData->normals[i * 3]));
-        ColorComponent illumination = 0.1 + clamp((ColorComponent) vector3FDotProduct(vector3FOpposite(normal), userData->lightDirection), 0, 1) * 0.9;
-        rasterizerDrawTriangle(rasterizer, a, b, c, colorMultiply(userData->colors[i * 3], illumination), colorMultiply(userData->colors[i * 3 + 1], illumination), colorMultiply(userData->colors[i * 3 + 2], illumination));
-    }*/
     UniformData *uniformData = malloc(sizeof(UniformData));
     uniformData->lightDirection = userData->lightDirection;
     uniformData->modelViewMatrix = modelViewMatrix;
