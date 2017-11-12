@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME}
     "Matrix4F.h" "Matrix4F.c"
     "Color.h" "Color.c"
     "Rasterizer.c" "Rasterizer.h"
+    "Interface.c" "Interface.h"
     "System.h" "System.c"
 )
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 99)

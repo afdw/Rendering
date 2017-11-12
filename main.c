@@ -5,10 +5,6 @@
 #include <math.h>
 #include <pthread.h>
 
-#ifndef NO_RENDERING
-#include <GLFW/glfw3.h>
-#endif
-
 #include "Utils.h"
 #include "VectorTypes.h"
 #include "Vector2I.h"
@@ -17,33 +13,70 @@
 #include "Matrix4F.h"
 #include "Color.h"
 #include "Rasterizer.h"
+#include "Interface.h"
 #include "System.h"
+
+typedef struct RenderData {
+    size_t trianglesCount;
+    Vector3F *positions;
+    Color *colors;
+    Vector3F lightDirection;
+} RenderData;
 
 void *threadFunction(void *arg) {
     return NULL;
 }
 
-int main() {
+void render(Interface *interface, Rasterizer *rasterizer) {
+    RenderData *renderData = (RenderData *) interfaceGetUserPointer(interface);
+    rasterizerClear(rasterizer);
+    double time = (double) (systemGetCurrentMilliseconds() % 3000) / 3000;
+    double angle = time * M_PI * 2;
+    Matrix4F projectionMatrix = matrix4FNewPerspective(85, (F) rasterizerGetSize(rasterizer).x / rasterizerGetSize(rasterizer).y, 1, 100);
+    Matrix4F modelViewMatrix = matrix4FNewIdentity();
+    modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewTranslation(vector3FNew(0, sin(angle) / 2, -2)));
+    modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewRotation(angle, 0, 1, 0));
+    modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewScaling(0.5, 0.5, 0.5));
+    Matrix4F modelViewProjectionMatrix = matrix4FMultiply(projectionMatrix, modelViewMatrix);
+    for (size_t i = 0; i < renderData->trianglesCount; i++) {
+        Vector3F a = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(renderData->positions[i * 3 ], 1)));
+        Vector3F b = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(renderData->positions[i * 3 + 1], 1)));
+        Vector3F c = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(renderData->positions[i * 3 + 2], 1)));
+        Vector3F normal = vector3FNormalize(vector3FCrossProduct(vector3FSubstract(b, a), vector3FSubstract(c, a)));
+        Vector3F lightDirectionTransformed = vector3FNormalize(vector4FToVector3F(matrix4FMultiplyByVector4F(projectionMatrix, vector3FToVector4F(renderData->lightDirection, 0))));
+        ColorComponent illumination = 0.1 + clamp((ColorComponent) vector3FDotProduct(normal, lightDirectionTransformed), 0, 1) * 0.9;
+        Color color = colorNew(
+            renderData->colors[i].r * illumination,
+            renderData->colors[i].g * illumination,
+            renderData->colors[i].b * illumination,
+            renderData->colors[i].a
+        );
+        rasterizerDrawTriangle(rasterizer, a, b, c, color);
+    }
+}
+
+int main(void) {
     pthread_t tid;
     pthread_create(&tid, NULL, &threadFunction, NULL);
-    //pthread_join(tid, NULL);
-    Vector3F triangles[2 * 2 * 3][3] = {
-        {vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5)},
-        {vector3FNew(-0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, -0.5), vector3FNew(-0.5, -0.5, -0.5)},
-        {vector3FNew(+0.5, +0.5, +0.5), vector3FNew(+0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, -0.5)},
-        {vector3FNew(+0.5, -0.5, -0.5), vector3FNew(+0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, +0.5)},
+    pthread_join(tid, NULL);
+    int trianglesCount = 12;
+    Vector3F positions[12 * 3] = {
+        vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5),
+        vector3FNew(-0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, -0.5), vector3FNew(-0.5, -0.5, -0.5),
+        vector3FNew(+0.5, +0.5, +0.5), vector3FNew(+0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, -0.5),
+        vector3FNew(+0.5, -0.5, -0.5), vector3FNew(+0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, +0.5),
 
-        {vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, +0.5)},
-        {vector3FNew(+0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, -0.5)},
-        {vector3FNew(+0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, -0.5)},
-        {vector3FNew(-0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, +0.5)},
+        vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, +0.5),
+        vector3FNew(+0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, -0.5),
+        vector3FNew(+0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, -0.5),
+        vector3FNew(-0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, +0.5),
 
-        {vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, -0.5)},
-        {vector3FNew(+0.5, +0.5, -0.5), vector3FNew(+0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, -0.5)},
-        {vector3FNew(+0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5), vector3FNew(-0.5, -0.5, +0.5)},
-        {vector3FNew(-0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, +0.5), vector3FNew(+0.5, +0.5, +0.5)}
+        vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, +0.5, -0.5), vector3FNew(+0.5, +0.5, -0.5),
+        vector3FNew(+0.5, +0.5, -0.5), vector3FNew(+0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, -0.5),
+        vector3FNew(+0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5), vector3FNew(-0.5, -0.5, +0.5),
+        vector3FNew(-0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, +0.5), vector3FNew(+0.5, +0.5, +0.5)
     };
-    Color colors[2 * 2 * 3] = {
+    Color colors[12] = {
         colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
         colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
         colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
@@ -60,61 +93,15 @@ int main() {
         colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1)
     };
     Vector3F lightDirection = vector3FNormalize(vector3FNew(0, -0.5, 1));
-    Rasterizer *rasterizer = rasterizerNew(vector2INew(1000, 1000));
-#ifndef NO_RENDERING
-    if (!glfwInit()) {
-        return -1;
-    }
-    GLFWwindow* window = glfwCreateWindow(640, 480, "Rendering", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    while (!glfwWindowShouldClose(window)) {
-        rasterizerSetSize(rasterizer, rasterizerGetWindowSize(window));
-#else
-    while (1) {
-#endif
-        rasterizerClear(rasterizer);
-        double time = (double) (systemGetCurrentMilliseconds() % 3000) / 3000;
-        double angle = time * M_PI * 2;
-        Matrix4F projectionMatrix = matrix4FNewPerspective(85, (F) rasterizer->size.x / rasterizer->size.y, 1, 100);
-        Matrix4F modelViewMatrix = matrix4FNewIdentity();
-        modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewTranslation(vector3FNew(0, sin(angle) / 2, -2)));
-        modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewRotation(angle, 0, 1, 0));
-        modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewScaling(0.5, 0.5, 0.5));
-        Matrix4F modelViewProjectionMatrix = matrix4FMultiply(projectionMatrix, modelViewMatrix);
-        for (size_t i = 0; i < getArrayElementsCount(triangles); i++) {
-            Vector3F a = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(triangles[i][0], 1)));
-            Vector3F b = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(triangles[i][1], 1)));
-            Vector3F c = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(triangles[i][2], 1)));
-            Vector3F normal = vector3FNormalize(vector3FCrossProduct(vector3FSubstract(b, a), vector3FSubstract(c, a)));
-            Vector3F lightDirectionTransformed = vector3FNormalize(vector4FToVector3F(matrix4FMultiplyByVector4F(projectionMatrix, vector3FToVector4F(lightDirection, 0))));
-            ColorComponent illumination = 0.1 + clamp((ColorComponent) vector3FDotProduct(normal, lightDirectionTransformed), 0, 1) * 0.9;
-            Color color = colorNew(
-                colors[i].r * illumination,
-                colors[i].g * illumination,
-                colors[i].b * illumination,
-                colors[i].a
-            );
-            rasterizerDrawTriangle(rasterizer, a, b, c, color);
-        }
-#ifndef NO_RENDERING
-        rasterizerDraw(rasterizer);
-        GLenum error = glGetError();
-        if (error != 0) {
-            printf("%x\n", glGetError());
-            fflush(stdout);
-        }
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-    glfwTerminate();
-#else
-        break;
-    }
-#endif
-    rasterizerDelete(rasterizer);
-    return 0;
+    RenderData *renderData = malloc(sizeof(RenderData));
+    renderData->trianglesCount = trianglesCount;
+    renderData->positions = positions;
+    renderData->colors = colors;
+    renderData->lightDirection = lightDirection;
+    Interface *interface = interfaceNew();
+    interfaceSetUserPointer(interface, renderData);
+    interfaceSetRender(interface, &render);
+    int result = interfaceMain(interface);
+    free(renderData);
+    return result;
 }

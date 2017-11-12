@@ -1,5 +1,5 @@
-#ifndef MATRIX_4F
-#define MATRIX_4F
+#ifndef MATRIX_4F_H
+#define MATRIX_4F_H
 
 #include "VectorTypes.h"
 #include "Vector3F.h"

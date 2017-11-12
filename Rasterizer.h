@@ -18,11 +18,11 @@ typedef struct Rasterizer {
     F *depthBuffer;
 } Rasterizer;
 
-#ifndef NO_RENDERING
-Vector2I rasterizerGetWindowSize(GLFWwindow* window);
-#endif
-
 Rasterizer *rasterizerNew(Vector2I size);
+
+Vector2I rasterizerGetSize(Rasterizer *rasterizer);
+
+ColorComponent *rasterizerGetColorBuffer(Rasterizer *rasterizer);
 
 void rasterizerSetSize(Rasterizer *rasterizer, Vector2I size);
 
@@ -45,10 +45,6 @@ void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color 
 void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color color);
 
 void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color color);
-
-#ifndef NO_RENDERING
-void rasterizerDraw(Rasterizer *rasterizer);
-#endif
 
 void rasterizerDelete(Rasterizer *rasterizer);
 

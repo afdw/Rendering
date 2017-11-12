@@ -1,5 +1,5 @@
-#ifndef VECTOR_3F
-#define VECTOR_3F
+#ifndef VECTOR_3F_H
+#define VECTOR_3F_H
 
 #include "VectorTypes.h"
 

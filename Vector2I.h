@@ -1,5 +1,5 @@
-#ifndef VECTOR_2I
-#define VECTOR_2I
+#ifndef VECTOR_2I_H
+#define VECTOR_2I_H
 
 #include "VectorTypes.h"
 

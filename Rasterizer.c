@@ -1,17 +1,9 @@
 #include "Rasterizer.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include "Utils.h"
-
-#ifndef NO_RENDERING
-Vector2I rasterizerGetWindowSize(GLFWwindow* window) {
-    int width;
-    int height;
-    glfwGetWindowSize(window, &width, &height);
-    return vector2INew((I) width, (I) height);
-}
-#endif
 
 size_t rasterizerGetBufferSize(Vector2I size, size_t componentSize, size_t componentCount) {
     return componentSize * componentCount * (size_t) size.x * (size_t) size.y;
@@ -27,6 +19,14 @@ Rasterizer *rasterizerNew(Vector2I size) {
     rasterizer->colorBuffer = calloc(rasterizerGetBufferSize(rasterizer->size, sizeof(ColorComponent), 4), 1);
     rasterizer->depthBuffer = calloc(rasterizerGetBufferSize(rasterizer->size, sizeof(F), 1), 1);
     return rasterizer;
+}
+
+Vector2I rasterizerGetSize(Rasterizer *rasterizer) {
+    return rasterizer->size;
+}
+
+ColorComponent *rasterizerGetColorBuffer(Rasterizer *rasterizer) {
+    return rasterizer->colorBuffer;
 }
 
 void rasterizerSetSize(Rasterizer *rasterizer, Vector2I size) {
@@ -155,12 +155,6 @@ void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vect
         }
     }
 }
-
-#ifndef NO_RENDERING
-void rasterizerDraw(Rasterizer *rasterizer) {
-    glDrawPixels(rasterizer->size.x, rasterizer->size.y, GL_RGBA, GL_FLOAT, rasterizer->colorBuffer);
-}
-#endif
 
 void rasterizerDelete(Rasterizer *rasterizer) {
     free(rasterizer->colorBuffer);

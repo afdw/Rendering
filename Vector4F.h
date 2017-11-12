@@ -1,5 +1,5 @@
-#ifndef VECTOR_4F
-#define VECTOR_4F
+#ifndef VECTOR_4F_H
+#define VECTOR_4F_H
 
 #include "VectorTypes.h"
 
