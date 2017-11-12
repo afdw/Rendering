@@ -1,5 +1,6 @@
 #include "Rasterizer.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -9,16 +10,22 @@ size_t rasterizerGetBufferSize(Vector2I size, size_t componentSize, size_t compo
     return componentSize * componentCount * (size_t) size.x * (size_t) size.y;
 }
 
-size_t rasterizerGetBufferOffset(Vector2I size, size_t componentSize, size_t componentCount, Vector2I position) {
-    return componentSize * componentCount * ((size_t) size.x * (size_t) position.y + (size_t) position.x);
+size_t rasterizerGetBufferOffset(Vector2I offset, Vector2I size, size_t componentSize, size_t componentCount, Vector2I position) {
+    return componentSize * componentCount * ((size_t) size.x * (size_t) (position.y - offset.y) + (size_t) (position.x - offset.x));
 }
 
-Rasterizer *rasterizerNew(Vector2I size) {
+Rasterizer *rasterizerNew(Vector2I wholeSize, Vector2I offset, Vector2I size) {
     Rasterizer *rasterizer = malloc(sizeof(Rasterizer));
+    rasterizer->wholeSize = wholeSize;
+    rasterizer->offset = offset;
     rasterizer->size = size;
     rasterizer->colorBuffer = calloc(rasterizerGetBufferSize(rasterizer->size, sizeof(ColorComponent), 4), 1);
     rasterizer->depthBuffer = calloc(rasterizerGetBufferSize(rasterizer->size, sizeof(F), 1), 1);
     return rasterizer;
+}
+
+Vector2I rasterizerGetOffset(Rasterizer *rasterizer) {
+    return rasterizer->offset;
 }
 
 Vector2I rasterizerGetSize(Rasterizer *rasterizer) {
@@ -27,6 +34,14 @@ Vector2I rasterizerGetSize(Rasterizer *rasterizer) {
 
 ColorComponent *rasterizerGetColorBuffer(Rasterizer *rasterizer) {
     return rasterizer->colorBuffer;
+}
+
+void rasterizerSetWholeSize(Rasterizer *rasterizer, Vector2I wholeSize) {
+    rasterizer->wholeSize = wholeSize;
+}
+
+void rasterizerSetOffset(Rasterizer *rasterizer, Vector2I offset) {
+    rasterizer->offset = offset;
 }
 
 void rasterizerSetSize(Rasterizer *rasterizer, Vector2I size) {
@@ -42,28 +57,27 @@ void rasterizerSetSize(Rasterizer *rasterizer, Vector2I size) {
 void rasterizerClear(Rasterizer *rasterizer) {
     memset(rasterizer->colorBuffer, 0, rasterizerGetBufferSize(rasterizer->size, sizeof(ColorComponent), 4));
     memset(rasterizer->depthBuffer, 0, rasterizerGetBufferSize(rasterizer->size, sizeof(F), 1));
-}
-
-void rasterizerSetColor(Rasterizer *rasterizer, Vector2I position, Color color) {
-    if (position.x >= 0 && position.y >= 0 && position.x < rasterizer->size.x && position.y < rasterizer->size.y) {
-        size_t offset = rasterizerGetBufferOffset(rasterizer->size, sizeof(ColorComponent), 4, position);
-        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset) = color.r;
-        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset + sizeof(ColorComponent)) = color.g;
-        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset + sizeof(ColorComponent) * 2) = color.b;
-        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset + sizeof(ColorComponent) * 3) = color.a;
+    for (I x = rasterizer->offset.x; x <= rasterizer->offset.x + rasterizer->size.x; x++) {
+        rasterizerSetColor(rasterizer, vector2INew(x, rasterizer->offset.y), colorNew(1, 0, 0, 1));
+        rasterizerSetColor(rasterizer, vector2INew(x, rasterizer->offset.y + rasterizer->size.y - 1), colorNew(1, 0, 0, 1));
+    }
+    for (I y = rasterizer->offset.y; y <= rasterizer->offset.y + rasterizer->size.y; y++) {
+        rasterizerSetColor(rasterizer, vector2INew(rasterizer->offset.x, y), colorNew(1, 0, 0, 1));
+        rasterizerSetColor(rasterizer, vector2INew(rasterizer->offset.x + rasterizer->size.x - 1, y), colorNew(1, 0, 0, 1));
     }
 }
 
-void rasterizerSetDepth(Rasterizer *rasterizer, Vector2I position, F depth) {
-    if (position.x >= 0 && position.y >= 0 && position.x < rasterizer->size.x && position.y < rasterizer->size.y) {
-        size_t offset = rasterizerGetBufferOffset(rasterizer->size, sizeof(F), 1, position);
-        *(F *)((char *) rasterizer->depthBuffer + offset) = depth;
-    }
+bool rasterizerIsInside(Rasterizer *rasterizer, Vector2I position) {
+    return
+        position.x >= rasterizer->offset.x &&
+        position.y >= rasterizer->offset.y &&
+        position.x < (rasterizer->offset.x + rasterizer->size.x) &&
+        position.y < (rasterizer->offset.y + rasterizer->size.y);
 }
 
 Color rasterizerGetColor(Rasterizer *rasterizer, Vector2I position) {
-    if (position.x >= 0 && position.y >= 0 && position.x < rasterizer->size.x && position.y < rasterizer->size.y) {
-        size_t offset = rasterizerGetBufferOffset(rasterizer->size, sizeof(ColorComponent), 4, position);
+    if (rasterizerIsInside(rasterizer, position)) {
+        size_t offset = rasterizerGetBufferOffset(rasterizer->offset, rasterizer->size, sizeof(ColorComponent), 4, position);
         return colorNew(
             *(ColorComponent *)((char *) rasterizer->colorBuffer + offset),
             *(ColorComponent *)((char *) rasterizer->colorBuffer + offset + sizeof(ColorComponent)),
@@ -75,19 +89,36 @@ Color rasterizerGetColor(Rasterizer *rasterizer, Vector2I position) {
 }
 
 F rasterizerGetDepth(Rasterizer *rasterizer, Vector2I position) {
-    if (position.x >= 0 && position.y >= 0 && position.x < rasterizer->size.x && position.y < rasterizer->size.y) {
-        size_t offset = rasterizerGetBufferOffset(rasterizer->size, sizeof(F), 1, position);
+    if (rasterizerIsInside(rasterizer, position)) {
+        size_t offset = rasterizerGetBufferOffset(rasterizer->offset, rasterizer->size, sizeof(F), 1, position);
         return *(F *)((char *) rasterizer->depthBuffer + offset);
     }
     return 0;
 }
 
+void rasterizerSetColor(Rasterizer *rasterizer, Vector2I position, Color color) {
+    if (rasterizerIsInside(rasterizer, position)) {
+        size_t offset = rasterizerGetBufferOffset(rasterizer->offset, rasterizer->size, sizeof(ColorComponent), 4, position);
+        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset) = color.r;
+        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset + sizeof(ColorComponent)) = color.g;
+        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset + sizeof(ColorComponent) * 2) = color.b;
+        *(ColorComponent *)((char *) rasterizer->colorBuffer + offset + sizeof(ColorComponent) * 3) = color.a;
+    }
+}
+
+void rasterizerSetDepth(Rasterizer *rasterizer, Vector2I position, F depth) {
+    if (rasterizerIsInside(rasterizer, position)) {
+        size_t offset = rasterizerGetBufferOffset(rasterizer->offset, rasterizer->size, sizeof(F), 1, position);
+        *(F *)((char *) rasterizer->depthBuffer + offset) = depth;
+    }
+}
+
 Vector2I rasterizerNDCToScreen(Rasterizer *rasterizer, Vector3F vector) {
-    return vector2INew((I) ((vector.x + 1) / 2 * rasterizer->size.x), (I) ((vector.y + 1) / 2 * rasterizer->size.y));
+    return vector2INew((I) ((vector.x + 1) / 2 * rasterizer->wholeSize.x), (I) ((vector.y + 1) / 2 * rasterizer->wholeSize.y));
 }
 
 Vector3F rasterizerScreenToNDC(Rasterizer *rasterizer, Vector2I vector) {
-    return vector3FNew((F) vector.x / rasterizer->size.x * 2 - 1, (F) vector.y / rasterizer->size.y * 2 - 1, 0);
+    return vector3FNew((F) vector.x / rasterizer->wholeSize.x * 2 - 1, (F) vector.y / rasterizer->wholeSize.y * 2 - 1, 0);
 }
 
 void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color color) {

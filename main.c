@@ -27,12 +27,12 @@ void *threadFunction(void *arg) {
     return NULL;
 }
 
-void render(Interface *interface, Rasterizer *rasterizer) {
+void render(Interface *interface, Vector2I size, Rasterizer *rasterizer) {
     RenderData *renderData = (RenderData *) interfaceGetUserPointer(interface);
     rasterizerClear(rasterizer);
     F time = (F) (systemGetCurrentMilliseconds() % 3000) / 3000;
     F angle = time * M_PI * 2;
-    Matrix4F projectionMatrix = matrix4FNewPerspective(85, (F) rasterizerGetSize(rasterizer).x / rasterizerGetSize(rasterizer).y, 1, 100);
+    Matrix4F projectionMatrix = matrix4FNewPerspective(85, (F) size.x / size.y, 1, 100);
     Matrix4F modelViewMatrix = matrix4FNewIdentity();
     modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewTranslation(vector3FNew(0, sin(angle) / 2, -2)));
     modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewRotation(angle, 0, 1, 0));
@@ -56,9 +56,9 @@ void render(Interface *interface, Rasterizer *rasterizer) {
 }
 
 int main(void) {
-    pthread_t tid;
-    pthread_create(&tid, NULL, &threadFunction, NULL);
-    pthread_join(tid, NULL);
+    pthread_t thread;
+    pthread_create(&thread, NULL, &threadFunction, NULL);
+    pthread_join(thread, NULL);
     int trianglesCount = 12;
     Vector3F positions[12 * 3] = {
         vector3FNew(-0.5, -0.5, -0.5), vector3FNew(-0.5, -0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5),
