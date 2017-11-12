@@ -21,6 +21,10 @@ typedef struct RenderData {
     Vector3F lightDirection;
 } RenderData;
 
+void fragmentShader() {
+
+}
+
 void render(Interface *interface, Vector2I size, Rasterizer *rasterizer) {
     RenderData *renderData = (RenderData *) interfaceGetUserPointer(interface);
     rasterizerClear(rasterizer);
@@ -33,19 +37,13 @@ void render(Interface *interface, Vector2I size, Rasterizer *rasterizer) {
     modelViewMatrix = matrix4FMultiply(modelViewMatrix, matrix4FNewScaling(0.5, 0.5, 0.5));
     Matrix4F modelViewProjectionMatrix = matrix4FMultiply(projectionMatrix, modelViewMatrix);
     for (size_t i = 0; i < renderData->trianglesCount; i++) {
-        Vector3F a = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(renderData->positions[i * 3 ], 1)));
+        Vector3F a = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(renderData->positions[i * 3], 1)));
         Vector3F b = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(renderData->positions[i * 3 + 1], 1)));
         Vector3F c = vector4FToVector3F(matrix4FMultiplyByVector4F(modelViewProjectionMatrix, vector3FToVector4F(renderData->positions[i * 3 + 2], 1)));
         Vector3F normal = vector3FNormalize(vector3FCrossProduct(vector3FSubstract(b, a), vector3FSubstract(c, a)));
         Vector3F lightDirectionTransformed = vector3FNormalize(vector4FToVector3F(matrix4FMultiplyByVector4F(projectionMatrix, vector3FToVector4F(renderData->lightDirection, 0))));
         ColorComponent illumination = 0.1 + clamp((ColorComponent) vector3FDotProduct(normal, lightDirectionTransformed), 0, 1) * 0.9;
-        Color color = colorNew(
-            renderData->colors[i].r * illumination,
-            renderData->colors[i].g * illumination,
-            renderData->colors[i].b * illumination,
-            renderData->colors[i].a
-        );
-        rasterizerDrawTriangle(rasterizer, a, b, c, color);
+        rasterizerDrawTriangle(rasterizer, a, b, c, colorMultiply(renderData->colors[i * 3], illumination), colorMultiply(renderData->colors[i * 3 + 1], illumination), colorMultiply(renderData->colors[i * 3 + 2], illumination));
     }
 }
 
@@ -67,22 +65,12 @@ int main(void) {
         vector3FNew(+0.5, +0.5, +0.5), vector3FNew(-0.5, +0.5, +0.5), vector3FNew(-0.5, -0.5, +0.5),
         vector3FNew(-0.5, -0.5, +0.5), vector3FNew(+0.5, -0.5, +0.5), vector3FNew(+0.5, +0.5, +0.5)
     };
-    Color colors[12] = {
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1),
-        colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1)
-    };
+    Color colors[12 * 3];
+    for (size_t i = 0; i < trianglesCount; i++) {
+        colors[i * 3] = colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1);
+        colors[i * 3 + 1] = colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1);
+        colors[i * 3 + 2] = colorNew((F) (rand() % 255) / 255, (F) (rand() % 255) / 255, (F) (rand() % 255) / 255, 1);
+    }
     Vector3F lightDirection = vector3FNormalize(vector3FNew(0, -0.5, 1));
     RenderData *renderData = malloc(sizeof(RenderData));
     renderData->trianglesCount = trianglesCount;

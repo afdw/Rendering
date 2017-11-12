@@ -54,7 +54,7 @@ int interfaceMain(Interface *interface) {
         glfwGetWindowSize(window, &width, &height);
         Vector2I size = vector2INew((I) width, (I) height);
         rasterizerSetWholeSize(rasterizer, size);
-        rasterizerSetOffset(rasterizer, vector2INew(200, 200));
+        rasterizerSetOffset(rasterizer, vector2INew(0, 0));
         rasterizerSetSize(rasterizer, vector2ISubstract(size, rasterizerGetOffset(rasterizer)));
 #else
     Vector2I size = vector2INew(1024, 1024);

@@ -121,7 +121,7 @@ Vector3F rasterizerScreenToNDC(Rasterizer *rasterizer, Vector2I vector) {
     return vector3FNew((F) vector.x / rasterizer->wholeSize.x * 2 - 1, (F) vector.y / rasterizer->wholeSize.y * 2 - 1, 0);
 }
 
-void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color color) {
+void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color colorP0, Color colorP1) {
     Vector2I p0Screen = rasterizerNDCToScreen(rasterizer, p0);
     Vector2I p1Screen = rasterizerNDCToScreen(rasterizer, p1);
     Vector2I delta = vector2ISubstract(p1Screen, p0Screen);
@@ -129,7 +129,7 @@ void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color 
     int error = 0;
     if (absDelta.x >= absDelta.y) {
         for (int x = p0Screen.x, y = p0Screen.y; delta.x >= 0 ? (x <= p1Screen.x) : (x >= p1Screen.x); x += sign(delta.x)) {
-            rasterizerSetColor(rasterizer, vector2INew(x, y), color);
+            rasterizerSetColor(rasterizer, vector2INew(x, y), colorAdd(colorP0, colorMultiply(colorSubstract(colorP1, colorP0), (ColorComponent) abs(x - p0Screen.x) / abs(p1Screen.x - p0Screen.x))));
             error += absDelta.y;
             if (error * 2 >= absDelta.x) {
                 y += sign(delta.y);
@@ -141,7 +141,7 @@ void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color 
         }
     } else {
         for (int x = p0Screen.x, y = p0Screen.y; delta.y >= 0 ? (y <= p1Screen.y) : (y >= p1Screen.y); y += sign(delta.y)) {
-            rasterizerSetColor(rasterizer, vector2INew(x, y), color);
+            rasterizerSetColor(rasterizer, vector2INew(x, y), colorAdd(colorP0, colorMultiply(colorSubstract(colorP1, colorP0), (ColorComponent) abs(y - p0Screen.y) / abs(p1Screen.y - p0Screen.y))));
             error += absDelta.x;
             if (error * 2 >= absDelta.y) {
                 x += sign(delta.x);
@@ -154,13 +154,13 @@ void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color 
     }
 }
 
-void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color color) {
-    rasterizerDrawLine(rasterizer, a, b, color);
-    rasterizerDrawLine(rasterizer, b, c, color);
-    rasterizerDrawLine(rasterizer, a, c, color);
+void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC) {
+    rasterizerDrawLine(rasterizer, a, b, colorA, colorB);
+    rasterizerDrawLine(rasterizer, b, c, colorB, colorC);
+    rasterizerDrawLine(rasterizer, a, c, colorA, colorC);
 }
 
-void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color color) {
+void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC) {
     Vector2I aScreen = rasterizerNDCToScreen(rasterizer, a);
     Vector2I bScreen = rasterizerNDCToScreen(rasterizer, b);
     Vector2I cScreen = rasterizerNDCToScreen(rasterizer, c);
@@ -174,6 +174,7 @@ void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vect
             if (m >= 0 && m <= 1) {
                 F l = (b.x != a.x) ? (((p.x - a.x) - m * (c.x - a.x)) / (b.x - a.x)) : (((p.y - a.y) - m * (c.y - a.y)) / (b.y - a.y));
                 if (l >= 0 && l <= 1 && m + l <= 1) {
+                    Color color = colorAdd(colorA, colorAdd(colorMultiply(colorSubstract(colorB, colorA), l), colorMultiply(colorSubstract(colorC, colorA), m)));
                     F depth = a.z + l * (b.z - a.z) + m * (c.z - a.z);
                     F oldDepth = rasterizerGetDepth(rasterizer, pScreen);
                     if (oldDepth == 0 || depth < oldDepth) {

@@ -48,11 +48,11 @@ Vector2I rasterizerNDCToScreen(Rasterizer *rasterizer, Vector3F vector);
 
 Vector3F rasterizerScreenToNDC(Rasterizer *rasterizer, Vector2I vector);
 
-void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color color);
+void rasterizerDrawLine(Rasterizer *rasterizer, Vector3F p0, Vector3F p1, Color colorP0, Color colorP1);
 
-void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color color);
+void rasterizerDrawTriangleWireframe(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC);
 
-void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color color);
+void rasterizerDrawTriangle(Rasterizer *rasterizer, Vector3F a, Vector3F b, Vector3F c, Color colorA, Color colorB, Color colorC);
 
 void rasterizerDelete(Rasterizer *rasterizer);
 
