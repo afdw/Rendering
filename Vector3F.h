@@ -18,6 +18,8 @@ Vector3F vector3FAdd(Vector3F a, Vector3F b);
 
 Vector3F vector3FSubtract(Vector3F a, Vector3F b);
 
+Vector3F vector3FMultiply(Vector3F vector, F n);
+
 Vector3F vector3FOpposite(Vector3F vector);
 
 F vector3FLength(Vector3F vector);

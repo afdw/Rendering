@@ -45,7 +45,7 @@ void rasterizerSetColor(Rasterizer *rasterizer, Vector2I position, Color color);
 
 void rasterizerSetDepth(Rasterizer *rasterizer, Vector2I position, F depth);
 
-void rasterizerDraw(Rasterizer *rasterizer, RasterizationTask *rasterizationTask);
+void rasterizerDoTask(Rasterizer *rasterizer, RasterizationTask *rasterizationTask);
 
 void rasterizerDelete(Rasterizer *rasterizer);
 

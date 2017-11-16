@@ -18,6 +18,10 @@ Vector3F vector3FSubtract(Vector3F a, Vector3F b) {
     return vector3FNew(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
+Vector3F vector3FMultiply(Vector3F vector, F n) {
+    return vector3FNew(vector.x * n, vector.y * n, vector.z * n);
+}
+
 Vector3F vector3FOpposite(Vector3F vector) {
     return vector3FNew(-vector.x, -vector.y, -vector.z);
 }

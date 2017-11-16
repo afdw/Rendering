@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#define structMember(type, member) (((type *) 0)->member)
+#define structMember(type, member) (((type *) 0)->member) // TODO: use `offsetof` of <stddef.h>?
 #define getArrayElementsCount(array) (sizeof(array) / sizeof((array)[0]))
 
 #define min(a, b) ((a) < (b) ? (a) : (b))

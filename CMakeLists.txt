@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME}
     "Matrix3F.h" "Matrix3F.c"
     "Matrix4F.h" "Matrix4F.c"
     "Color.h" "Color.c"
+    "List.h" "List.c"
     "ShaderProgram.h" "ShaderProgram.c"
     "RasterizationTask.h" "RasterizationTask.c"
     "Rasterizer.c" "Rasterizer.h"

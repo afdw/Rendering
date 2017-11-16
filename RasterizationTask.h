@@ -5,35 +5,55 @@
 
 #include "ShaderProgram.h"
 
+typedef enum RasterizationTaskType {
+    DRAW,
+    CLEAR
+} RasterizationTaskType;
+
 typedef enum PrimitivesType {
     LINES,
     TRIANGLES_WIREFRAME,
     TRIANGLES
 } PrimitivesType;
 
-typedef struct RasterizationTask {
+typedef struct DrawTaskData {
     PrimitivesType primitivesType;
     size_t primitivesCount;
     void *vertexBuffer;
     void *uniformData;
     ShaderProgram *shaderProgram;
+} DrawTaskData;
+
+typedef struct ClearTaskData {
+} ClearTaskData;
+
+typedef struct RasterizationTask {
+    RasterizationTaskType type;
+    union {
+        DrawTaskData drawTaskData;
+        ClearTaskData clearTaskData;
+    };
 } RasterizationTask;
 
-RasterizationTask *rasterizationTaskNew(PrimitivesType primitivesType,
-                                        size_t primitivesCount,
-                                        void *vertexBuffer,
-                                        void *uniformData,
-                                        ShaderProgram *shaderProgram);
+RasterizationTaskType rasterizationTaskGetType(RasterizationTask *rasterizationTask);
 
-PrimitivesType rasterizationTaskGetPrimitivesType(RasterizationTask *rasterizationTask);
+RasterizationTask *drawTaskNew(PrimitivesType primitivesType,
+                               size_t primitivesCount,
+                               void *vertexBuffer,
+                               void *uniformData,
+                               ShaderProgram *shaderProgram);
 
-size_t rasterizationTaskGetPrimitivesCount(RasterizationTask *rasterizationTask);
+PrimitivesType drawTaskGetPrimitivesType(RasterizationTask *drawTask);
 
-void *rasterizationTaskGetVertexBuffer(RasterizationTask *rasterizationTask);
+size_t drawTaskGetPrimitivesCount(RasterizationTask *drawTask);
 
-void *rasterizationTaskGetUniformData(RasterizationTask *rasterizationTask);
+void *drawTaskGetVertexBuffer(RasterizationTask *drawTask);
 
-ShaderProgram *rasterizationTaskGetShaderProgram(RasterizationTask *rasterizationTask);
+void *drawTaskGetUniformData(RasterizationTask *drawTask);
+
+ShaderProgram *drawTaskGetShaderProgram(RasterizationTask *drawTask);
+
+RasterizationTask *clearTaskNew();
 
 void rasterizationTaskDelete(RasterizationTask *rasterizationTask);
 

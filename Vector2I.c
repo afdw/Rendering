@@ -12,3 +12,7 @@ Vector2I vector2IAdd(Vector2I a, Vector2I b) {
 Vector2I vector2ISubtract(Vector2I a, Vector2I b) {
     return vector2INew(a.x - b.x, a.y - b.y);
 }
+
+Vector2I vector2IOpposite(Vector2I vector) {
+    return vector2INew(-vector.x, -vector.y);
+}

@@ -10,11 +10,11 @@
 typedef void (*VertexShaderFunction)(void *uniformData,
                                      void *vertexBuffer,
                                      size_t vertexIndex,
-                                     Vector3F *raserizerPosition,
+                                     Vector3F *outPosition,
                                      void *vertexPixelData);
 
 typedef void (*PixelShaderFunction)(void *vertexPixelData,
-                                    Color *raserizerColor);
+                                    Color *outColor);
 
 typedef void (*VertexPixelDataAddFunction)(void *a, void *b, void *out);
 

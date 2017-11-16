@@ -2,11 +2,12 @@
 #define INTERFACE_H
 
 #include "Vector2I.h"
+#include "List.h"
 #include "Rasterizer.h"
 
 typedef struct Interface Interface;
 
-typedef void (*RenderFunction)(Interface *interface, Vector2I size, Rasterizer *rasterizer);
+typedef void (*RenderFunction)(Interface *interface, Vector2I size, List *rasterizationTasksList);
 
 typedef struct Interface {
     RenderFunction render;

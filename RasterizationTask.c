@@ -2,40 +2,67 @@
 
 #include <stdlib.h>
 
-RasterizationTask *rasterizationTaskNew(PrimitivesType primitivesType,
-                                        size_t primitivesCount,
-                                        void *vertexBuffer,
-                                        void *uniformData,
-                                        ShaderProgram *shaderProgram) {
-    RasterizationTask *rasterizationTask = malloc(sizeof(RasterizationTask));
-    rasterizationTask->primitivesType = primitivesType;
-    rasterizationTask->primitivesCount = primitivesCount;
-    rasterizationTask->vertexBuffer = vertexBuffer;
-    rasterizationTask->uniformData = uniformData;
-    rasterizationTask->shaderProgram = shaderProgram;
-    return rasterizationTask;
+RasterizationTaskType rasterizationTaskGetType(RasterizationTask *rasterizationTask) {
+    return rasterizationTask->type;
 }
 
-PrimitivesType rasterizationTaskGetPrimitivesType(RasterizationTask *rasterizationTask) {
-    return rasterizationTask->primitivesType;
+RasterizationTask *drawTaskNew(PrimitivesType primitivesType,
+                               size_t primitivesCount,
+                               void *vertexBuffer,
+                               void *uniformData,
+                               ShaderProgram *shaderProgram) {
+    RasterizationTask *drawTask = malloc(sizeof(RasterizationTask));
+    drawTask->type = DRAW;
+    drawTask->drawTaskData.primitivesType = primitivesType;
+    drawTask->drawTaskData.primitivesCount = primitivesCount;
+    drawTask->drawTaskData.vertexBuffer = vertexBuffer;
+    drawTask->drawTaskData.uniformData = uniformData;
+    drawTask->drawTaskData.shaderProgram = shaderProgram;
+    return drawTask;
 }
 
-size_t rasterizationTaskGetPrimitivesCount(RasterizationTask *rasterizationTask) {
-    return rasterizationTask->primitivesCount;
+PrimitivesType drawTaskGetPrimitivesType(RasterizationTask *drawTask) {
+    return drawTask->drawTaskData.primitivesType;
 }
 
-void *rasterizationTaskGetVertexBuffer(RasterizationTask *rasterizationTask) {
-    return rasterizationTask->vertexBuffer;
+size_t drawTaskGetPrimitivesCount(RasterizationTask *drawTask) {
+    return drawTask->drawTaskData.primitivesCount;
 }
 
-void *rasterizationTaskGetUniformData(RasterizationTask *rasterizationTask) {
-    return rasterizationTask->uniformData;
+void *drawTaskGetVertexBuffer(RasterizationTask *drawTask) {
+    return drawTask->drawTaskData.vertexBuffer;
 }
 
-ShaderProgram *rasterizationTaskGetShaderProgram(RasterizationTask *rasterizationTask) {
-    return rasterizationTask->shaderProgram;
+void *drawTaskGetUniformData(RasterizationTask *drawTask) {
+    return drawTask->drawTaskData.uniformData;
+}
+
+ShaderProgram *drawTaskGetShaderProgram(RasterizationTask *drawTask) {
+    return drawTask->drawTaskData.shaderProgram;
+}
+
+void drawTaskDelete(RasterizationTask *drawTask) {
+    free(drawTask->drawTaskData.uniformData);
+    free(drawTask);
+}
+
+RasterizationTask *clearTaskNew() {
+    RasterizationTask *clearTask = malloc(sizeof(RasterizationTask));
+    clearTask->type = CLEAR;
+    return clearTask;
+}
+
+void clearTaskDelete(RasterizationTask *clearTask) {
+    free(clearTask);
 }
 
 void rasterizationTaskDelete(RasterizationTask *rasterizationTask) {
-    free(rasterizationTask);
+    switch (rasterizationTaskGetType(rasterizationTask)) {
+    case DRAW:
+        drawTaskDelete(rasterizationTask);
+        break;
+    case CLEAR:
+        clearTaskDelete(rasterizationTask);
+        break;
+    }
 }
